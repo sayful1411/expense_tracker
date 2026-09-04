@@ -1,13 +1,15 @@
 name: deploy
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: Production
 
@@ -21,6 +23,8 @@ jobs:
           script: |
             cd /tmp/expense_tracker
             git pull origin main
+            npm ci
+            npm run build
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
             php artisan config:cache
