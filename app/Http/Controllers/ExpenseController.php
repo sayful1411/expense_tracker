@@ -36,7 +36,7 @@ class ExpenseController extends Controller
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
-            'amount' => 'required|decimal:2|min:1.00|max:99999999.99',
+            'amount' => 'required|decimal:0,2|min:0.01|max:99999999.99',
             'date' => 'date',
         ]);
 
