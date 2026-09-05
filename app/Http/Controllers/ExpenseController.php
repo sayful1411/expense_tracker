@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SaveExpenseRequest;
 use App\Models\Expense;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class ExpenseController extends Controller
 {
@@ -31,20 +34,47 @@ class ExpenseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SaveExpenseRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'title' => 'required|string|max:255',
-            'amount' => 'required|decimal:0,2|min:0.01|max:99999999.99',
-            'date' => 'date',
-        ]);
+        $this->saveExpense(new Expense(), $request);
 
-        $data['user_id'] = auth()->id();
+        return redirect()->route('expenses.index')->with('status', __('Expense added.'));
+    }
 
-        Expense::create($data);
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Expense $expense): View
+    {
+        abort_unless($expense->user_id === auth()->id(), 404);
 
-        return redirect()->back();
+        $categories = auth()->user()->categories()->orderBy('name')->get();
+
+        return view('expenses.edit', compact('expense', 'categories'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(SaveExpenseRequest $request, Expense $expense): RedirectResponse
+    {
+        abort_unless($expense->user_id === auth()->id(), 404);
+
+        $this->saveExpense($expense, $request);
+
+        return redirect()->route('expenses.index')->with('status', __('Expense updated.'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Expense $expense): RedirectResponse
+    {
+        abort_unless($expense->user_id === auth()->id(), 404);
+
+        $expense->delete();
+
+        return redirect()->route('expenses.index')->with('status', __('Expense deleted.'));
     }
 
     /**
@@ -68,5 +98,15 @@ class ExpenseController extends Controller
         $total = $expenses->sum('total');
 
         return view('expenses.summary', compact('expenses', 'categories', 'total'));
+    }
+
+    private function saveExpense(Expense $expense, SaveExpenseRequest $request): void
+    {
+        $expense->user()->associate($request->user());
+        $expense->category_id = $request->validated('category_id');
+        $expense->title = $request->validated('title');
+        $expense->amount = $request->validated('amount');
+        $expense->date = $request->validated('date');
+        $expense->save();
     }
 }

@@ -14,7 +14,7 @@ Route::get('/', function () {
 Route::get('/expenses/summary', [ExpenseController::class, 'summary'])->name('expenses.summary');
 Route::resource('expenses', ExpenseController::class)
     ->middleware(['auth'])
-    ->only(['index', 'create', 'store']);
+    ->except(['show']);
 
 Route::get('/dashboard', [DashboardController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
