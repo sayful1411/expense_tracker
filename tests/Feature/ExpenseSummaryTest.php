@@ -87,3 +87,76 @@ test('date range validation rejects to before from', function () {
 
     $response->assertSessionHasErrors('to');
 });
+
+test('summary supports an open-ended from date', function () {
+    $user = User::factory()->create();
+    $inCategory = Category::factory()->for($user)->create(['name' => 'After From Cat']);
+    $outCategory = Category::factory()->for($user)->create(['name' => 'Before From Cat']);
+
+    Expense::factory()->for($user)->create(['category_id' => $inCategory, 'date' => '2026-03-10']);
+    Expense::factory()->for($user)->create(['category_id' => $outCategory, 'date' => '2026-02-15']);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('expenses.summary', ['from' => '2026-03-01']));
+
+    $response->assertOk()->assertSee('After From Cat')->assertDontSee('Before From Cat');
+});
+
+test('summary supports an open-ended to date', function () {
+    $user = User::factory()->create();
+    $inCategory = Category::factory()->for($user)->create(['name' => 'Before To Cat']);
+    $outCategory = Category::factory()->for($user)->create(['name' => 'After To Cat']);
+
+    Expense::factory()->for($user)->create(['category_id' => $inCategory, 'date' => '2026-09-02']);
+    Expense::factory()->for($user)->create(['category_id' => $outCategory, 'date' => '2026-09-04']);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('expenses.summary', ['to' => '2026-09-03']));
+
+    $response->assertOk()->assertSee('Before To Cat')->assertDontSee('After To Cat');
+});
+
+test('summary month filter rejects an invalid month', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('expenses.summary', ['month' => '2026-13']));
+
+    $response->assertSessionHasErrors('month');
+});
+
+test('summary aggregates totals per category', function () {
+    $user = User::factory()->create();
+    $category = $user->categories()->first();
+
+    Expense::factory()->for($user)->create(['category_id' => $category, 'date' => now()->toDateString(), 'amount' => 10]);
+    Expense::factory()->for($user)->create(['category_id' => $category, 'date' => now()->toDateString(), 'amount' => 25]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('expenses.summary'));
+
+    $response->assertOk()->assertSee('$35.00');
+});
+
+test('summary renders presets and highlights the active one', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('expenses.summary'));
+
+    $response->assertOk()
+        ->assertSee(__('Today'))
+        ->assertSee(__('Last 7 days'))
+        ->assertSee(__('This month'))
+        ->assertSee(__('Last month'))
+        ->assertSee(__('This year'))
+        ->assertSee(__('Last year'));
+
+    expect($response->getContent())
+        ->toMatch('/bg-blue-600[^>]*>[\s\S]*?'.__('This month').'/');
+});
