@@ -1,6 +1,11 @@
 @props(['message' => null])
 
-@if ($message = $message ?? session('status'))
+@php
+    $message = $message ?? (session('status') ?? session('error'));
+    $variant = session()->has('error') ? 'error' : 'success';
+@endphp
+
+@if ($message)
     <div
         x-data="{ visible: false }"
         x-init="requestAnimationFrame(() => visible = true); setTimeout(() => visible = false, 4500)"
@@ -17,8 +22,16 @@
         aria-live="polite"
     >
         <div class="flex items-start gap-3 rounded-xl bg-white px-4 py-3.5 ring-1 ring-gray-950/5 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)]">
-            <span class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
-                <flux:icon.check-circle class="size-3.5" />
+            <span @class([
+                'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full',
+                'bg-green-100 text-green-600' => $variant === 'success',
+                'bg-red-100 text-red-600' => $variant === 'error',
+            ])>
+                @if ($variant === 'success')
+                    <flux:icon.check-circle class="size-3.5" />
+                @else
+                    <flux:icon.exclamation-triangle class="size-3.5" />
+                @endif
             </span>
 
             <p class="text-sm font-medium text-gray-900 pt-px">{{ $message }}</p>

@@ -4,6 +4,7 @@ use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Appearance;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DashboardController;
 
@@ -13,6 +14,10 @@ Route::get('/', function () {
 
 Route::get('/expenses/summary', [ExpenseController::class, 'summary'])->name('expenses.summary');
 Route::resource('expenses', ExpenseController::class)
+    ->middleware(['auth'])
+    ->except(['show']);
+
+Route::resource('categories', CategoryController::class)
     ->middleware(['auth'])
     ->except(['show']);
 

@@ -20,6 +20,7 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Expense')" class="grid">
                     <flux:navlist.item icon="banknotes" :href="route('expenses.index')" :current="request()->routeIs('expenses.index', 'expenses.create', 'expenses.edit')" wire:navigate>{{ __('Expenses') }}</flux:navlist.item>
+                    <flux:navlist.item icon="tag" :href="route('categories.index')" :current="request()->routeIs('categories.index', 'categories.create', 'categories.edit')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
                     <flux:navlist.item icon="clipboard-document-list" :href="route('expenses.summary')" :current="request()->routeIs('expenses.summary')" wire:navigate>{{ __('Expense Summary') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
