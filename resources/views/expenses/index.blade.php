@@ -13,12 +13,6 @@
                 </a>
             </div>
 
-            @if (session('status'))
-                <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
-                    {{ session('status') }}
-                </div>
-            @endif
-
             <div class="bg-white rounded-2xl ring-1 ring-gray-950/5 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -54,15 +48,34 @@
                                             aria-label="{{ __('Edit') }}">
                                             <flux:icon.pencil class="size-4" />
                                         </a>
-                                        <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
+
+                                        <flux:modal.trigger name="confirm-deletion-{{ $expense->id }}">
+                                            <button type="button"
                                                 class="inline-flex items-center justify-center size-8 rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-500/10"
                                                 aria-label="{{ __('Delete') }}">
                                                 <flux:icon.trash class="size-4" />
                                             </button>
-                                        </form>
+                                        </flux:modal.trigger>
+
+                                        <flux:modal name="confirm-deletion-{{ $expense->id }}" class="max-w-sm text-start whitespace-normal">
+                                            <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="space-y-6">
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <flux:heading size="lg">{{ __('Delete expense?') }}</flux:heading>
+
+                                                <flux:subheading>
+                                                    {{ __('":title" will be permanently deleted. This action cannot be undone.', ['title' => $expense->title]) }}
+                                                </flux:subheading>
+
+                                                <div class="flex justify-end gap-2">
+                                                    <flux:modal.close>
+                                                        <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                                                    </flux:modal.close>
+                                                    <flux:button variant="danger" type="submit">{{ __('Delete') }}</flux:button>
+                                                </div>
+                                            </form>
+                                        </flux:modal>
                                     </td>
                                 </tr>
                             @empty
