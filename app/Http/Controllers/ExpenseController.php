@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SaveExpenseRequest;
 use App\Models\Expense;
-use App\Models\Category;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class ExpenseController extends Controller
 {
@@ -24,7 +27,7 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        $categories = Category::all();
+        $categories = auth()->user()->categories()->orderBy('name')->get();
 
         return view('expenses.create', compact('categories'));
     }
@@ -32,35 +35,73 @@ class ExpenseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SaveExpenseRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'title' => 'required|string|max:255',
-            'amount' => 'required|decimal:2|min:1.00|max:99999999.99',
-            'date' => 'date',
-        ]);
+        $this->saveExpense(new Expense, $request);
 
-        $data['user_id'] = auth()->id();
+        return redirect()->route('expenses.index')->with('status', __('Expense added.'));
+    }
 
-        Expense::create($data);
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Expense $expense): View
+    {
+        abort_unless($expense->user_id === auth()->id(), 404);
 
-        return redirect()->back();
+        $categories = auth()->user()->categories()->orderBy('name')->get();
+
+        return view('expenses.edit', compact('expense', 'categories'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(SaveExpenseRequest $request, Expense $expense): RedirectResponse
+    {
+        abort_unless($expense->user_id === auth()->id(), 404);
+
+        $this->saveExpense($expense, $request);
+
+        return redirect()->route('expenses.index')->with('status', __('Expense updated.'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Expense $expense): RedirectResponse
+    {
+        abort_unless($expense->user_id === auth()->id(), 404);
+
+        $expense->delete();
+
+        return redirect()->route('expenses.index')->with('status', __('Expense deleted.'));
     }
 
     /**
      * Display total expenses.
      */
-    public function summary()
+    public function summary(Request $request): View
     {
-        $userId = auth()->id();
-        $start = now()->startOfMonth();
-        $end = now()->endOfMonth();
+        $data = $request->validate([
+            'month' => ['nullable', 'date_format:Y-m'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
 
-        $categories = Category::pluck('name', 'id');
+        if (isset($data['from']) || isset($data['to'])) {
+            $start = isset($data['from']) ? Carbon::parse($data['from'])->startOfDay() : now()->startOfMonth();
+            $end = isset($data['to']) ? Carbon::parse($data['to'])->endOfDay() : now()->endOfMonth();
+        } elseif (isset($data['month'])) {
+            $start = Carbon::parse($data['month'].'-01')->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+        } else {
+            $start = now()->startOfMonth();
+            $end = now()->endOfMonth();
+        }
 
         $expenses = Expense::select('category_id', DB::raw('SUM(amount) as total'))
-            ->where('user_id', $userId)
+            ->where('user_id', auth()->id())
             ->whereBetween('date', [$start, $end])
             ->groupBy('category_id')
             ->with('category')
@@ -68,6 +109,24 @@ class ExpenseController extends Controller
 
         $total = $expenses->sum('total');
 
-        return view('expenses.summary', compact('expenses', 'categories', 'total'));
+        return view('expenses.summary', [
+            'expenses' => $expenses,
+            'total' => $total,
+            'start' => $start,
+            'end' => $end,
+            'month' => $data['month'] ?? $start->format('Y-m'),
+            'from' => $data['from'] ?? null,
+            'to' => $data['to'] ?? null,
+        ]);
+    }
+
+    private function saveExpense(Expense $expense, SaveExpenseRequest $request): void
+    {
+        $expense->user()->associate($request->user());
+        $expense->category_id = $request->validated('category_id');
+        $expense->title = $request->validated('title');
+        $expense->amount = $request->validated('amount');
+        $expense->date = $request->validated('date');
+        $expense->save();
     }
 }

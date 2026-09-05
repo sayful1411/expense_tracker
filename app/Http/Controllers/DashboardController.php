@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -28,11 +27,19 @@ class DashboardController extends Controller
             $data[] = $expense->total / 100;
         }
 
-        $chartData = [
-            'labels' => $labels,
-            'data' => $data,
-        ];
+        $topCategory = $expenses->sortByDesc('total')->first();
 
-        return view('dashboard', compact('chartData'));
+        return view('dashboard', [
+            'chartData' => [
+                'labels' => $labels,
+                'data' => $data,
+            ],
+            'monthTotal' => $expenses->sum('total'),
+            'expenseCount' => Expense::where('user_id', $userId)
+                ->whereBetween('date', [$start, $end])
+                ->count(),
+            'topCategory' => $topCategory?->category?->name,
+            'topCategoryTotal' => $topCategory?->total ?? 0,
+        ]);
     }
 }
