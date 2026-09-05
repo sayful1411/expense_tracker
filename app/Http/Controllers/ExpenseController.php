@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +23,7 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        $categories = Category::all();
+        $categories = auth()->user()->categories()->orderBy('name')->get();
 
         return view('expenses.create', compact('categories'));
     }
@@ -57,7 +56,7 @@ class ExpenseController extends Controller
         $start = now()->startOfMonth();
         $end = now()->endOfMonth();
 
-        $categories = Category::pluck('name', 'id');
+        $categories = auth()->user()->categories()->pluck('name', 'id');
 
         $expenses = Expense::select('category_id', DB::raw('SUM(amount) as total'))
             ->where('user_id', $userId)

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use App\Models\Category;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,9 +18,11 @@ class ExpenseFactory extends Factory
      */
     public function definition(): array
     {
+        $user = User::factory()->create();
+
         return [
-            'category_id' => Category::inRandomOrder()->value('id'),
-            'user_id' => User::inRandomOrder()->value('id'),
+            'user_id' => $user,
+            'category_id' => Category::factory()->for($user),
             'title' => $this->faker->sentence(3),
             'amount' => $this->faker->randomFloat(2, 1, 1000),
             'date' => $this->faker->date(),
