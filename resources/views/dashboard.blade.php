@@ -1,43 +1,43 @@
 <x-layouts.app :title="__('Dashboard')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="bg-white rounded-2xl ring-1 ring-gray-950/5 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6">
+            <div class="bg-white dark:bg-transparent rounded-2xl ring-1 ring-gray-950/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6">
                 <div class="flex items-center gap-3">
-                    <span class="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-transparent text-neutral-600 dark:text-neutral-300">
                         <flux:icon.banknotes class="size-5" />
                     </span>
-                    <p class="text-sm font-medium text-gray-500">{{ __('This Month') }}</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('This Month') }}</p>
                 </div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900 tabular-nums">
+                <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums">
                     ${{ number_format($monthTotal / 100, 2) }}
                 </p>
-                <p class="mt-1 text-sm text-gray-400">{{ __('Total spent in') }} {{ now()->format('F Y') }}</p>
+                <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">{{ __('Total spent in') }} {{ now()->format('F Y') }}</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-gray-950/5 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6">
+            <div class="bg-white dark:bg-transparent rounded-2xl ring-1 ring-gray-950/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6">
                 <div class="flex items-center gap-3">
-                    <span class="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
                         <flux:icon.clipboard-document-list class="size-5" />
                     </span>
-                    <p class="text-sm font-medium text-gray-500">{{ __('Expenses') }}</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Expenses') }}</p>
                 </div>
-                <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900 tabular-nums">
+                <p class="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums">
                     {{ $expenseCount }}
                 </p>
-                <p class="mt-1 text-sm text-gray-400">{{ __('Recorded this month') }}</p>
+                <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">{{ __('Recorded this month') }}</p>
             </div>
 
-            <div class="bg-white rounded-2xl ring-1 ring-gray-950/5 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6">
+            <div class="bg-white dark:bg-transparent rounded-2xl ring-1 ring-gray-950/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6">
                 <div class="flex items-center gap-3">
-                    <span class="flex size-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400">
                         <flux:icon.tag class="size-5" />
                     </span>
-                    <p class="text-sm font-medium text-gray-500">{{ __('Top Category') }}</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Top Category') }}</p>
                 </div>
-                <p class="mt-4 text-2xl font-bold tracking-tight text-gray-900 truncate">
+                <p class="mt-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white truncate">
                     {{ $topCategory ?? '—' }}
                 </p>
-                <p class="mt-1 text-sm text-gray-400 tabular-nums">
+                <p class="mt-1 text-sm text-gray-400 dark:text-gray-500 tabular-nums">
                     @if ($topCategory)
                         ${{ number_format($topCategoryTotal / 100, 2) }} {{ __('this month') }}
                     @else
