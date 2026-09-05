@@ -37,6 +37,21 @@
                 </flux:navlist.item>
             </flux:navlist>
 
+            <div class="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-700 dark:bg-zinc-800" x-data>
+                <button type="button" x-on:click="$flux.dark = false"
+                    class="flex h-7 flex-1 items-center justify-center rounded-md text-zinc-500 transition dark:text-zinc-400"
+                    :class="! $flux.dark ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white' : 'hover:bg-white/60 dark:hover:bg-zinc-700'"
+                    aria-label="{{ __('Light mode') }}">
+                    <flux:icon.sun class="size-4" />
+                </button>
+                <button type="button" x-on:click="$flux.dark = true"
+                    class="flex h-7 flex-1 items-center justify-center rounded-md text-zinc-500 transition dark:text-zinc-400"
+                    :class="$flux.dark ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white' : 'hover:bg-white/60 dark:hover:bg-zinc-700'"
+                    aria-label="{{ __('Dark mode') }}">
+                    <flux:icon.moon class="size-4" />
+                </button>
+            </div>
+
             <!-- Desktop User Menu -->
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
                 <flux:profile
