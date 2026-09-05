@@ -1,3 +1,21 @@
+@php
+    $presets = [
+        __('Today') => [now()->toDateString(), now()->toDateString()],
+        __('Last 7 days') => [now()->subDays(6)->toDateString(), now()->toDateString()],
+        __('This month') => [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
+        __('Last month') => [now()->subMonthNoOverflow()->startOfMonth()->toDateString(), now()->subMonthNoOverflow()->endOfMonth()->toDateString()],
+        __('This year') => [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()],
+        __('Last year') => [now()->subYear()->startOfYear()->toDateString(), now()->subYear()->endOfYear()->toDateString()],
+    ];
+
+    $activePreset = null;
+    foreach ($presets as $label => [$presetFrom, $presetTo]) {
+        if ($start->toDateString() === $presetFrom && $end->toDateString() === $presetTo) {
+            $activePreset = $label;
+        }
+    }
+@endphp
+
 <x-layouts.app :title="__('Expense Summary')">
     <div class="container mx-auto py-10">
         <div class="max-w-2xl mx-auto">
@@ -10,26 +28,29 @@
 
             <form action="{{ route('expenses.summary') }}" method="GET"
                 class="bg-white rounded-2xl ring-1 ring-gray-950/5 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_32px_-8px_rgba(16,24,40,0.18)] p-6 mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label for="month" class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('Month') }}</label>
-                        <input type="month" name="month" id="month" value="{{ $month }}"
-                            class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                    <div>
-                        <label for="from" class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('From') }}</label>
-                        <input type="date" name="from" id="from" value="{{ $from }}"
-                            class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                    <div>
-                        <label for="to" class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('To') }}</label>
-                        <input type="date" name="to" id="to" value="{{ $to }}"
-                            class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10">
-                    </div>
-                </div>
-                <p class="text-xs text-gray-400 mt-3">{{ __('Date range overrides the month field.') }}</p>
+                <input type="hidden" name="from" value="{{ $from }}">
+                <input type="hidden" name="to" value="{{ $to }}">
 
-                <div class="flex justify-end gap-2 mt-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    @foreach($presets as $label => [$presetFrom, $presetTo])
+                        <a href="{{ route('expenses.summary', ['from' => $presetFrom, 'to' => $presetTo]) }}"
+                            @class([
+                                'rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/10',
+                                'bg-blue-600 text-white shadow-sm' => $activePreset === $label,
+                                'bg-gray-100 text-gray-700 hover:bg-gray-200' => $activePreset !== $label,
+                            ])>
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-end gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <div class="flex-1">
+                        <label for="custom-range" class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('Custom range') }}</label>
+                        <input type="text" id="custom-range" data-flatpickr-range data-from="{{ $from }}" data-to="{{ $to }}"
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+                            placeholder="{{ __('Pick a start and end date') }}" readonly>
+                    </div>
                     <a href="{{ route('expenses.summary') }}"
                         class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/10">
                         {{ __('Reset') }}
@@ -66,7 +87,7 @@
                                 <td colspan="2" class="px-5 py-16 text-center">
                                     <flux:icon.receipt-percent class="mx-auto size-10 text-gray-300" />
                                     <p class="mt-3 text-sm font-medium text-gray-900">{{ __('No expenses in this period.') }}</p>
-                                    <p class="mt-1 text-sm text-gray-500">{{ __('Try a different month or date range.') }}</p>
+                                    <p class="mt-1 text-sm text-gray-500">{{ __('Try a different preset or date range.') }}</p>
                                 </td>
                             </tr>
                         @endforelse
