@@ -26,7 +26,7 @@ class Expense extends Model
     protected function amount(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => number_format($value / 100, 2),
+            get: fn ($value) => $value / 100,
             set: fn ($value) => $this->attributes['amount'] = $value * 100
         );
     }
